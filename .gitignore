@@ -1,0 +1,25 @@
+# Dev
+*~
+*.dot
+*.gcda
+*.gcno
+*.o
+*.out
+install/*
+*.pdf
+*.dot
+*.gcov
+
+# Latex
+*.pdf
+*.aux
+*.log
+*.out
+*.toc
+
+# Divers
+\#*\#
+.#*
+*.so
+install/*
+!install/.gitkeep

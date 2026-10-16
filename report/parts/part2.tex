@@ -1,0 +1,56 @@
+\section{Stratégie client}
+
+Dans cette section, nous allons nous intéresser à la partie stratégie des différents clients mis en place par notre équipe durant ce projet.
+
+\subsection{Client naïf : Steven}
+
+Pour pouvoir tester rapidement notre serveur avec un vrai joueur, nous avons commencé par coder un client naïf, affectueusement nommé \texttt{Steven}.
+\bigskip
+
+Ce joueur est codé pour toujours avancer d'un sommet vers l'Est. Si il ne peut pas, il reculera, donc avancera d'une case vers l'Ouest. Si il ne peut toujours pas, il choisira la première position disponible à une distance 1 en parcourant les directions dans le sens des aiguilles d'une montre. Si il ne trouve aucune position libre, c'est que le sommet sur lequel il se trouve est de degré 1 et que le joueur adverse est sur le sommet adjacent au sommet sur lequel est \texttt{Steven} puisque selon les règles du jeu, il ne peut être sur un sommet coupé de tout les autres. Dans ce cas là, il choisira de sauter au dessus de son adversaire.
+\bigskip
+
+Malgré sa simplicité, ce joueur nous a permi de bien cerner les règles du jeu et tester notre serveur en condition réelle. C'est pourquoi il est toujours intéressant de coder une stratégie naïve avant de s'intéresser à quelque chose de plus sofistiqué.
+
+\subsection{Client basique : Tristan}
+
+Quand nous avons ensuite voulu coder un joueur qui puisse pour de vrai jouer au jeu, nous nous sommes vite rendu compte que le client allait avoir besoin de toutes les informations de la partie, comme le serveur. Ce client est en fait doté d'un mini serveur qui s'occupe de récupérer les données transmises par le vrai serveur et de les utilisées pour actualiser son propre suivit de la partie qui se modélise par un plateau de jeu sous forme de graphe et des données relatives à chaque joueur présent dans la partie comme leur position, leur direction, les objectifs qu'ils ont ou non atteint, etc.
+\bigskip
+
+Une fois ceci mis en place, on peut s'occuper de l'établissement de la stratégie.
+
+Pour notre joueur \texttt{Tristan}, la stratégie mise en place est la suivante. Quand le joueur souhaite décider d'un coup à jouer, il teste tout les coups valides qu'ils peut jouer et il donne à chaque coup une valeur définie par :
+\[
+valeur = (distance\_apres\_coup(\texttt{adversaire}) - distance\_apres\_coup(\texttt{Tristan}) -
+\]
+\[
+(distance\_avant\_coup(\texttt{adversaire}) - distance\_avant\_coup(\texttt{Tristan}))
+\]
+Cela correspond à l'avance gagné par le joueur \texttt{Tristan} sur son adversaire grâce au coup joué.
+\bigskip
+
+Le graphe étant non pondéré, le plus court chemin est donné par un parcours en largeur. L'implémentation de ce parcours repose sur une structure de file (tableau circulaire). La distance est déterminée à partir de la position du joueur dont on cherche la distance à son objectif non visité le plus proche. Autrement dit, on part du principe qu'un joueur cherchera d'abord à atteindre l'objectif le plus proche de lui parmis ceux qu'il n'a pas encore atteint.
+
+\begin{figure}[H]
+\begin{minipage}[c]{.46\linewidth}
+  \centering
+  \includegraphics[width=\textwidth]{calcul_coup_avant.png}
+  \caption{Distances avant le placement du coup}
+  \label{fig:calcul_coup_avant}
+\end{minipage}\hfill
+\begin{minipage}[c]{.46\linewidth}
+  \centering
+  \includegraphics[width=\textwidth]{calcul_coup_apres.png}
+  \caption{Distances après le placement du coup}
+  \label{fig:calcul_coup_apres}
+\end{minipage}
+\end{figure}
+
+Pour ce coup qui place un mur coupant les arêtes 15--10 et 14--10 entre les figures \ref{fig:calcul_coup_avant} et \ref{fig:calcul_coup_apres}, on obtient donc une valeur de 1:
+\[
+valeur = (3 - 1) - (2 - 1) = 2 - 1 = 1
+\]
+Ce coup a permi au joueur \texttt{Tristan} de gagner 1 d'avance sur son adversaire.
+\bigskip
+
+Une fois que chaque coup a été évalué, il est possible de déterminer la valeur donné la plus élevée. Le coup joué est désigné aléatoirement entre les coups ayant pour valeur cette valeur maximale.

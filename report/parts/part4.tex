@@ -1,0 +1,39 @@
+\section{Tests de validation}
+Il est important de pouvoir tester son code et nous l'expliquons succintement dans cette partie.
+
+\subsection{Tests structurels}
+
+Plusieurs test ont été réalisés sur les clients pour vérifier le bon respect des règles du jeu.%huyjtfrgklggujh(Camille)
+D'autres tests succints ont été réalisés sur certaines fonctions.
+
+La meilleure façon de valider le fonctionnement de nos clients reste de les faire s'affronter et d'observer le graphe de jeu obtenu dont nous discutons dans la prochaine partie.
+
+\subsection{Affichage des parties}
+
+Un autre moyen de tester le bon fonctionnement de nos clients ou du serveur est simplement d'observer le graphe du jeu.
+Dans ce sens il nous a été nécessaire de créer une fonctions d'affichage des graphes avec les joueurs.
+
+C'est ainsi que l'on a utilisé \textit{DOT}, un language de description de graphe.
+Ce language nous permet de générer un graphe pour chaque état de la partie, le tout dans un pdf.
+C'est le but de la fonction \textit{graph\_dot} qui a été apercu précédemment mais non expliqué.
+Celle-ci génére un fichier \textit{DOT} qui est un simple fichier texte décrivant le graphe, ce fichier est ensuite compilé en pdf en utilisant \textit{neato}.
+Il nous a également fallu créer un script bash pour lier chaque pdf de chaque graphe.
+Ainsi, on obtient un pdf du nombre de page correspondant au nombre de coup de la partie.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{dot.png}
+  \caption{Affichage du plateau de jeu}
+  \label{fig:dot}
+\end{figure}
+
+
+La figure \ref{fig:dot} montre un début de partie avec 4 objectifs, le joueur noir sur le sommet 0 et le joueur blanc sur le sommet 90. 
+
+\section{Conclusion}
+
+Ce projet fut vaste, à la fois sur les plans du développement logiciel, de l’algorithmie et de la théorie. Nous avons appris à gérer des serveurs, à créer des bibliothèques dynamiques.
+Nous avons aussi appris à prendre du recul sur un problème afin de créer des outils nous permettant de résoudre ces mêmes problèmes.
+Enfin, nous avons dû concevoir une stratégie, la tester, la comparer à d'autres, la remettre en question, puis la peaufiner.
+En résumé, le projet Coursidor fut enrichissant à bien des égards pour les jeunes programmeurs que nous sommes.
+

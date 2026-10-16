@@ -1,0 +1,72 @@
+\documentclass{article}
+
+\usepackage[left=2.5cm,right=2.5cm,top=1.5cm,bottom=1.5cm]{geometry}
+
+\usepackage[french]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{graphicx}
+\graphicspath{{report/img/}}
+\usepackage{subcaption}
+
+\usepackage{amsmath, amssymb}
+\usepackage{float}
+
+\usepackage{hyperref}
+\bibliographystyle{plainurl}
+
+\usepackage[dvipsnames]{xcolor}
+
+\usepackage{listings}
+\usepackage{xcolor}  % Pour colorer si besoin
+
+\lstdefinestyle{customc}{
+  language=C,
+  backgroundcolor=\color{gray!5},         % fond légèrement grisé
+  frame=single,                           % encadrement
+  rulecolor=\color{gray},                % couleur du cadre
+  basicstyle=\ttfamily\footnotesize,     % police à chasse fixe
+  keywordstyle=\color{blue}\bfseries,     % mots-clés en bleu gras
+  stringstyle=\color{orange},            % chaînes en orange
+  commentstyle=\color{gray!60}\itshape,  % commentaires gris en italique
+  numbers=left,                          % numérotation à gauche
+  numberstyle=\tiny\color{gray},         % style des numéros
+  stepnumber=1,                          % numéro à chaque ligne
+  tabsize=4,                             % taille des tabulations
+  showstringspaces=false,               % ne pas afficher les espaces dans les chaînes
+  breaklines=true,                      % retour à la ligne automatique
+  morekeywords={vertex_t, gsl_spmatrix_uint},  % tes mots-clés ajoutés
+}
+
+%%%%%%%%%%%%%%%% Page de garde %%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \includegraphics[width=0.7\textwidth]{logo_em} \\
+    \vspace{2cm}
+    {\Huge \textbf{Rapport de projet S6}} \\
+    \vspace{2cm}
+    {\Large Lucie Pacou, Solan Boher-Sanchez, Tristan Collemiche, Yani Haouchine} \\
+    \vspace{1cm}
+    {\Large Enseirb-Matmeca} \\
+    \vspace{1cm}
+    {\Large Projet de programmation : Coursidor} \\
+    \vspace{1cm}
+    {\Large Encadrant : Trupin Loic}
+    \vfill
+    {\Large 2025} \\
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+%%%%%%%%%%%%%%%% Main part %%%%%%%%%%%%%%%%
+\input{report/parts/part1.tex}
+\input{report/parts/part2.tex}
+\input{report/parts/part3.tex}
+\input{report/parts/part4.tex}
+
+\end{document}

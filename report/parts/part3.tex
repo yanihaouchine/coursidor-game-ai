@@ -1,0 +1,252 @@
+\section{Construction des plateaux}
+
+Bien que ne constituant pas une ``preuve'', la génération correcte du graphe est un ``argument'' convaincant en faveur du bon fonctionnement du programme.(Hypothèse H) 
+
+
+\subsection{Plateau Triangulaire}
+La construction du plateau triangulaire a été doublement importante. La première raison est que, étant le plus simple et le plus basique des 3 plateaux, son implémentation a servi de base à l'implémentation des 2 autres.
+
+La deuxième raison est que, étant le premier plateau à avoir été codé et en raison de sa simplicité, c'est sur ce plateau que plusieurs tests seront faits, notamment les tests de stratégie. Pour ne pas avoir à discriminer sur la nature d'une erreur, il faut donc s'assurer que ce graphe a été construit de façon correcte.
+
+\subsubsection*{Conception}
+
+\paragraph{De bas en haut :} 
+Le choix qui a été fait a été de construire le graphe de ``bas en haut'' en distinguant la ``phase de montée'' et la ``phase de descente''. Dans la ``phase de montée'', chaque ligne qui est au-dessus d'une autre possède un nœud de plus. Et dans la ``phase de descente'', chaque ligne au-dessus d'une autre contient un nœud de moins.     
+
+\paragraph{Méthode du compteur :}
+Chaque sommet étant représenté par un entier naturel durant la construction du graphe, on crée un compteur qui, à tout instant du programme, est égal au nombre représentant le sommet traité.
+
+\subsubsection*{Implémentation}
+De la conception précédente découle naturellement une implémentation constituée de deux boucles : la première correspondant à la ``phase montante'' et la deuxième correspondant à la ``phase descendante''. Chacune des deux boucles contient une boucle interne qui parcourt la ligne. La borne supérieure de cette boucle interne varie en accord avec la conception vue plus haut.
+
+Dans la boucle interne, des disjonctions de cas sont faites selon l’emplacement du nœud dans la ligne.
+
+\begin{lstlisting}[style=customc]
+for (unsigned int i = 0; i < m - 1; i++) {
+  for (unsigned int j = 0; j < m + i; j++) {
+    // Phase montante 
+  }
+}
+for (vertex_t i = m - 1; i > 0; i--) {
+  for (vertex_t j = 0; j < m + i; j++) {
+    // Phase descendante
+  }
+}
+\end{lstlisting}
+
+\paragraph{Remarque :}
+Le nombre de sommets nous a été donné. Avec la méthode donnée plus haut, il aurait pu être calculé.
+
+\subsubsection*{Terminaison}
+Ce programme termine trivialement car il ne comporte pas de boucle while ni récursivité.
+
+\subsubsection*{Correction}
+
+Les figures \ref{fig:triangular3} et \ref{fig:triangular5} suffisent de preuve conformément à l'hypothèse H.
+
+\begin{figure}[H]
+\begin{minipage}[c]{.46\linewidth}
+  \centering
+  \includegraphics[width=\textwidth]{triangular3.png}
+  \caption{Graphe triangulaire taille 3}
+  \label{fig:triangular3}
+\end{minipage}\hfill
+\begin{minipage}[c]{.46\linewidth}
+  \centering
+  \includegraphics[width=\textwidth]{triangular5.png}
+  \caption{Graphe triangulaire taille 5}
+  \label{fig:triangular5}
+\end{minipage}
+\end{figure}
+
+\subsubsection*{Complexité}
+
+\paragraph{En temps :}
+Soit $|S|$ le nombre de sommets du graphe, il y a exactement $|S|$ appels à la fonction \texttt{graph\_add\_edge} qui s'exécute en temps constant. La complexité est donc linéaire en la taille du graphe. Construire un graphe impliquant de construire l'ensemble de ses sommets, on peut légitimement penser que cette complexité est optimale.
+
+\paragraph{En espace :}
+Nous ne stockons que le graphe, aucun autre espace n'est alloué. La complexité spatiale est donc linéaire en la taille du graphe.
+
+\subsection{Plateau circulaire}
+Le plateau triangulaire a fait l'objet d'une mauvaise conception, ce qui a conduit à une mauvaise implémentation. Cette ``mauvaise'' implémentation, bien qu'inutile sur le plan pratique, fut vertueuse. Nous détaillons ce point plus bas.
+
+\subsubsection*{Conception}
+Similairement au plateau triangulaire, on retrouve la méthode du ``compteur'' et la construction de bas en haut décrites plus haut. Ici, les phases de montée et de descente sont indiscernables. Il y a néanmoins plus de disjonctions de cas que dans la construction du premier graphe :
+\begin{itemize}
+    \item Le premier cas correspond à la première ligne
+    \item Le deuxième cas correspond à la deuxième ligne
+    \item Le troisième cas correspond à la construction de la ``phase montante'' restante
+    \item Le quatrième cas représente la construction de la ``phase descendante'' jusqu'à l'avant-avant-dernière ligne
+    \item Le 5\textsuperscript{ème} cas correspond à l'avant-avant-dernière ligne
+    \item Le 6\textsuperscript{ème} cas correspond à l'avant-dernière ligne
+    \item Le dernier cas correspond naturellement à la dernière ligne
+\end{itemize}
+
+\subsubsection*{Implémentation}
+De la conception découle 7 parties dans la fonction. Hormis la 5\textsuperscript{ème}, elles sont toutes représentées par des boucles.
+
+\subsubsection*{Terminaison}
+En l'absence de boucle \texttt{while}, ce programme termine trivialement.
+
+\subsubsection*{Correction}
+
+Les figures \ref{fig:circular3} et \ref{fig:circular5} suffisent de preuve conformément à l'hypothèse H.
+\begin{figure}[H]
+\begin{minipage}[c]{.46\linewidth}
+  \centering
+  \includegraphics[width=\textwidth]{circular3.png}
+  \caption{Graphe circulaire taille 3}
+  \label{fig:circular3}
+\end{minipage}\hfill
+\begin{minipage}[c]{.46\linewidth}
+  \centering
+  \includegraphics[width=\textwidth]{circular5.png}
+  \caption{Graphe circulaire taille 5}
+  \label{fig:circular5}
+\end{minipage}
+\end{figure}
+
+\subsubsection*{Complexité}
+\paragraph{Temporelle :}
+La complexité de ce programme est linéaire en la taille du graphe, et pour les mêmes raisons exposées dans la partie graphe triangulaire, on admettra que la complexité est asymptotiquement optimale.
+
+\paragraph{Spatiale :}
+Linéaire en la taille du graphe.
+
+\paragraph{Nota bene :}
+Bien que la complexité soit optimale, on affirme ici que la conception de ce programme est mauvaise, pour plusieurs raisons :
+\begin{itemize}
+    \item Tout d'abord, il faut se remettre en contexte. Générer un graphe n'est pas une action qui sera répétée ; avoir une complexité suboptimale n'est donc pas tant gênant.
+    \item Ensuite, tout comme le lecteur l'aura remarqué, la fonction \texttt{graph\_make\_circular} est compliquée. Elle n'utilise quasiment aucune sous-fonction. Le nombre de boucles, toutes avec des bornes différentes, augmente grandement le risque d'erreur. D'ailleurs, cette fonction fut la plus longue à coder parmi les trois.
+    \item Enfin, plus une impression qu'un argument : une fois que le programme fut opérationnel, le code n'était toujours pas maîtrisé par ses développeurs. Il fonctionnait, mais beaucoup de choix ont été mis en place ``pour que ça marche'' et non apportés par une réelle compréhension.
+\end{itemize}
+
+Toutes ces erreurs furent bénéfiques pour les jeunes programmeurs que nous sommes pour la simple et bonne raison qu'elles sont venues souligner l'intérêt de ne pas passer trop vite à l'implémentation, et aussi et surtout de développer des ``outils'' fiables pour résoudre un problème.
+
+\subsection{Plateau troué}
+De par sa structure plus complexe et les erreurs faites durant la construction du graphe circulaire, la conception du graphe troué fut précédée par la conception d'outils aidant à la programmation.
+
+\subsubsection*{Conception}
+L'idée principale pour construire ce graphe sera de partir du graphe triangulaire, filtrer certains sommets de façon à obtenir le graphe troué.
+
+La première idée est de faciliter le déplacement dans le graphe triangulaire. Pour cela, on veut une fonction qui prend en entrée une ligne $i$ et une colonne $j$ et qui renvoie le numéro du sommet se trouvant à l'intersection de la ligne $i$ et la colonne $j$.
+
+Il faut à présent pouvoir ``représenter'' les trous, les distinguer, les définir.
+Nous avons choisi pour cela de repérer leurs centres se situant à des positions constantes en fonction de $m$.
+
+Une fois muni de ces représentants, savoir si un sommet existe ou non dans le graphe troué devient une tâche simple. Soit $v$ un sommet et soit $R$ le rayon d'un trou, s'il existe un représentant $r_i$ tel que $\|v - r_i\| < R$, alors $v$ n'existe pas dans le graphe troué, avec $\|\cdot\|$ la distance induite par le parcours du graphe.
+
+Il s'agit à présent de pouvoir ``superposer'' le graphe troué et le graphe triangulaire.
+Pour cela, on construit un mapping qui, à un sommet $i$ dans le graphe triangulaire, associe son numéro dans le graphe troué, $-1$ sinon. Ainsi, si $\text{map}(i) \neq -1$ et $\text{map}(j) \neq -1$ et si $j$ et $i$ sont reliés dans le graphe triangulaire, alors $\text{map}(i)$ et $\text{map}(j)$ sont reliés dans le graphe troué.
+
+\subsubsection*{Implémentation}
+
+\paragraph{Repérage}
+On repère d'abord la position du premier élément de chaque ligne avec la fonction \texttt{first\_of\_ligne}. On distingue les cas où nous nous trouvons dans la partie haute ou basse du graphe pour profiter des symétries. Une fois avoir trouvé le premier élément de la $i$-ème ligne, il suffit de rajouter $j$ pour se retrouver à l'intersection de la $i$-ème ligne et de la $j$-ème colonne.
+
+\begin{lstlisting}[style=customc]
+vertex_t idx_2(size_t ligne, size_t colonne, size_t m) {
+  return (vertex_t)(colonne + first_of_ligne(ligne, m));
+}
+\end{lstlisting}
+
+\paragraph{Représentant}
+À l'aide d'une feuille et d'un crayon, on trouve les coordonnées des représentants. Il suffit ensuite de les stocker dans un tableau.
+
+\begin{lstlisting}[style=customc]
+   representant[0] = idx_2(m - 1, m - 1, m);
+   representant[1] = idx_2(m - 1, m + (m / 3) - 1 + (m / 3) - 1, m);
+   ...
+\end{lstlisting}
+
+\paragraph{Filtre}
+Muni de la fonction \texttt{bfs}, on obtient la distance entre deux points. On itère sur le tableau obtenu plus haut dans la fonction \texttt{exist} pour savoir, conformément à ce qui a été dit plus haut, si un sommet appartient au graphe troué.
+
+\begin{lstlisting}[style=customc]
+  int exist_graph_vertices(size_t m, vertex_t v, struct graph_t* g, vertex_t* representant) {
+    for (int i = 0; i < 7; i++) {
+      if ((In(representant[i], (m / 3 - 1), g, v))) {
+        return 0;
+      }
+    }
+  }
+    return 1;
+  \end{lstlisting}
+  \begin{lstlisting}[style=customc]
+  int In(vertex_t center, size_t radius, struct graph_t* g, vertex_t point) {
+    if (bfs(g, center, point) < (int)radius)
+        return 1;
+    return 0;
+}
+\end{lstlisting}
+
+\paragraph{Mapping}
+On itère sur un tableau \texttt{map} pour associer le numéro de $i$ dans le graphe triangulaire au numéro de $i$ dans le graphe troué, $-1$ sinon. On procède ensuite comme décrit plus haut.
+
+\begin{lstlisting}[style=customc]
+  for (vertex_t i = 0; i < triang->num_vertices; i++) {
+    map[i] = exist[i] ? num_vertices++ : (vertex_t)-1;
+  }
+\end{lstlisting}
+
+\subsubsection*{Terminaison}
+En l'absence de boucle \texttt{while}, nos fonctions terminent.
+
+\subsubsection*{Correction}
+
+Les figures \ref{fig:holey6} et \ref{fig:holey9} suffisent de preuve conformément à l'hypothèse H.
+\begin{figure}[H]
+\begin{minipage}[c]{.46\linewidth}
+  \centering
+  \includegraphics[width=\textwidth]{holey6.png}
+  \caption{Graphe troué taille 6}
+  \label{fig:holey6}
+\end{minipage}\hfill
+\begin{minipage}[c]{.46\linewidth}
+  \centering
+  \includegraphics[width=\textwidth]{holey9.png}
+  \caption{Graphe troué taille 9}
+  \label{fig:holey9}
+\end{minipage}
+\end{figure}
+
+\subsubsection*{Complexité}
+La complexité provient majoritairement de la boucle construisant le mapping. Il y a $n$ itérations avec, pour chaque itération, un appel à \texttt{existe} qui appelle \texttt{In} qui appelle \texttt{bfs}, dont la complexité est classiquement linéaire en la taille du graphe. La complexité est donc quadratique en la taille du graphe.
+
+La complexité est suboptimale.
+
+\subsubsection*{Remarque}
+\begin{itemize}
+    \item Les symétries inhérentes aux graphes n'ont peut-être pas assez été utilisées.
+    \item La complexité des fonctions de fin \texttt{gsl\_spmatrix\_uint(i)} n'a pas été prise en compte.
+    \item Les techniques utilisées pour créer le graphe troué sont particulièrement utiles car elles permettraient de créer d'autres graphes de façon simple. Par exemple, en remplaçant les représentants par un unique représentant, on pourrait créer un graphe troué uniquement au centre dont le rayon du trou peut être choisi. En particulier, pour $r = m - 2$, on obtient le graphe circulaire. Il faut bien sûr penser à compter le nombre de sommets que contient chaque graphe pour pouvoir effectuer le \texttt{malloc}.
+    \item La remarque ci-dessus pourrait mener à la conception d'une fonction générique pour générer les graphes... \#RENAULT
+    \item Les complexités sont calculées en fonction de la taille du graphe et non en fonction de la taille de l'entrée. Si c'était le cas, l'entrée étant un entier $m$, les complexités en temps et en espace seraient exponentielles.
+\end{itemize}
+
+
+
+\section{Difficultés rencontrées}
+Cette section a pour objectif de traiter toutes sortes de difficultés que nous avons rencontrés au cours du projet.
+
+\subsection{Matrice CSR et COO}
+Dans le cadre de l'abstraction des matrices pour notre type \texttt{graph\_t} il nous a été nécessaire d'utiliser les fonctions de \textit{GSL} pour les matrices creuses.
+
+Il existe plusieurs implémentation des matrices creuses dans la library \textit{GSL}, dans notre cas l'implémentation \textit{CSR}, que l'on ne va expliciter ici, est celle choisi.
+Cependant, les matrices \textit{CSR} ne permettent pas d'ajouter d'élément, il est nécessaire d'ajouter des éléments dans une matrice \textit{COO}, une autre implémentation, puis de la transformer en \textit{CSR}.
+C'est particulièrement nécessaire dans le cas de la génération des graphes abordées précédemment, celle-ci est réalisé sur des matrices \textit{COO}.
+\bigskip
+
+Nous n'avions pas remarqué ça au départ et il a ainsi fallu adapter les primitives de notre type \texttt{graph\_t} pour changer leurs comportement selon le type de la matrice.
+Par exemple, notre fonction \texttt{graph\_add\_edge} doit différencier les 2 types de matrices.
+Dans le cas \textit{COO} elle utilise la fonction \texttt{set} de \textit{GSL} pour affecter une valeur à une position dans la matrice et dans l'autre cas la fonction \texttt{ptr} qui récupére le pointeur vers la valeur dans la matrice (pointeur qui ne peux exister si la valeur n'existe pas).
+
+\subsection{Deboggage d'erreurs sur du code utilisant l'aléatoire}
+
+Lors des tests de la fonction \texttt{play()} de \texttt{Tristan}, certaines erreurs sont évidemment advenues, notamment des erreurs faisant jouer certains coups interdits. Pour trouver les raisons qui faisaient jouer ces coups normalement impossibles à jouer, il paraissait naturel d'utiliser l'outil \texttt{gdb}.
+
+Malheureusement, la décision du prochain coup du client \texttt{Tristan} étant aléatoire, il était impossible quand une erreur était remarquée de relancer la même partie avec \texttt{gdb} pour corriger précisément cette erreur. Et il était impossible de lancer une partie avec \texttt{gdb} en espérant réobtenir l'erreur. Certaines sont rares et cela aurait été beaucoup trop long.
+
+La solution trouvée était de modifier temporairement l'implémentation de la fonction \texttt{play()} (dans le client et dans \texttt{player.h}) pour mettre en entrée de la fonction un argument \texttt{int seed}, qui permet de choisir sur quel aléatoire les coups du client seront choisis. Dans le même temps, on lance l'aléatoire avec la fonction \texttt{time(NULL)} dans le serveur, on affiche la valeur de time(NULL) et on la donne à la fonction \texttt{play()}.
+
+Finalement, il ne restait plus qu'à lancer des parties en cherchant l'erreur avec l'affichage des parties - ce qui est donc rapide - et on relance la partie avec la \texttt{seed} - qui a été affiché par le serveur - en utilisant \texttt{gdb}.

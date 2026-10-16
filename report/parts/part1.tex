@@ -1,0 +1,189 @@
+
+\section{Introduction}
+
+Les objectifs principaux de ce projet est d'implémenter la variante du jeu \textit{Quoridor} nommée \textit{Coursidor} avec des \textbf{clients} qui jouent à ce jeu et un \textbf{serveur} qui s'occupe de faire jouer des parties à deux \textbf{clients} à la fois sur différent \textbf{plateaux de jeu}, eux aussi à implémenter.
+\bigskip
+
+Ce projet est donc axé d'abord sur l'implémentation de jeu en C, l'utilisation de bibliothèque dynamique pour les \textbf{clients} et enfin surtout sur des problèmes d'algorithmiques de graphes pour l'implémentation des stratégies de jeu des \textbf{clients}.
+
+\section{Structure du projet}
+
+Cette section sera dédiée à l'explication et l'implémentation de nos structures de jeu ainsi que du principe de client/serveur.
+
+\subsection{Structure de graphe et abstraction}
+
+Le plateau de jeu \textit{Coursidor} est représenté par un graphe où chaque sommet correspond à une position possible d'un joueur et les arêtes correspondent aux déplacements possibles depuis les sommets.
+Le graphe est plongé dans le plan c'est à dire que chaque sommet voit ses arêtes prendre 7 directions : \texttt{NO\_EDGE=0, NW=1, NE=2, E=3, SE=4, SW=5, et W=6}.
+Il existe également une direction spéciale \texttt{WALL\_DIR} qui indique que la direction est bloquée par un mur.
+Ces graphes sont implémentés en utilisant des matrices creuses de la \textit{GNU Scientific Library (GSL)}.
+Il a donc été nécessaire de définir une abstraction en utilisant une interface pour utiliser ces matrices comme des graphes.
+
+\begin{lstlisting}[style=customc, label={lst:graph}, caption={Définition du type graph\_t}]
+  struct graph_t {
+    enum graph_type_t type; // The type of the graph
+    unsigned int num_vertices; // Number of vertices in the graph
+    unsigned int num_edges; // Number of edges in the graph
+    gsl_spmatrix_uint* t; // Sparse matrix of size num_vertices*num_vertices,
+                          // t[i][j] > 0 means there is an edge from i to j
+                          // t[i][j] == E means that j is EAST of i
+                          // t[i][j] == W means that j is WEST of i
+                          // and so on
+    vertex_t start[NUM_PLAYERS]; // Starting vertices of both players
+    unsigned int num_objectives; // Number of objectives in the graph
+    vertex_t* objectives; // Objectives of the graph
+};
+\end{lstlisting}
+
+Le listing \ref{lst:graph} nous renseigne sur les champs de notre structure \textit{graph\_t}.
+Les valeurs dans la matrice du graphe aux indices \textit{i,j} correspondent à la direction de l'arête.
+
+\begin{lstlisting}[style=customc, label={lst:graphprim}, caption={Primitives du type graph\_t}]
+  struct graph_t* graph_create(unsigned int n_vertices);
+
+  enum dir_t graph_exist_edge(struct graph_t* g, struct edge_t e);
+
+  int graph_remove_edge(struct graph_t* g, struct edge_t e);
+
+  int graph_add_edge(struct graph_t* g, vertex_t fr, vertex_t to, enum dir_t d);
+
+  vertex_t graph_neighbor_direction(struct graph_t* g, vertex_t v, enum dir_t d);
+
+  void graph_free(struct graph_t** g);
+
+  void graph_dot(struct graph_t* g, struct edge_t* removed, int removed_size, vertex_t black_player_pos, vertex_t white_player_pos, char* name, int append);
+
+  void graph_cpy(struct graph_t* dest, struct graph_t* src);
+
+  unsigned int graph_get_num_vertices(struct graph_t* g);
+
+  unsigned int graph_get_num_edges(struct graph_t* g);
+
+  unsigned int graph_get_num_objectives(struct graph_t* g);
+\end{lstlisting}
+
+Les primitives données en listing \ref{lst:graphprim} ont donc été créées.
+Ces fonctions permettent toutes les opérations nécessaires sur les graphes dans notre projet.
+Ainsi, les matrices creuses \textit{GSL} n'apparaissent nulle part ailleurs que dans le fichier \textit{board.c} où sont implémentées ces fonctions.
+
+\paragraph{Intérêts : }
+Créer une interface de ce type permet une abstraction totale des matrices creuses et donc une totale modularité quant à leur implémentation.
+Cela permet d'éviter les erreurs en rapport avec cette bibliothèque car celles-ci sont traitées dans les fonctions de l'interface.
+
+\subsection{Mise en place des clients}
+
+Pour tous les clients, l'interface client/serveur est la même. En effet, dans chaque fichier client \texttt{.c}, compilés par la suite sous la forme d'une bibliothèque partagée, est inclu le fichier d'en-tête \texttt{player.h}. Les quatre fonctions extraites des bibliothèques par le serveur et communes à tous les clients sont déclarées dans ce fichier.
+
+Ces fonctions sont les suivantes :
+\begin{lstlisting}[style=customc, label={lst:playerprim}, caption={Primitives du fichier player.h}]
+ char const* get_player_name();
+
+void initialize(unsigned int player_id, struct graph_t* graph);
+
+struct move_t play(const struct move_t previous_move);
+
+void finalize();
+  \end{lstlisting}
+
+L'intérêt de compiler les clients sous la forme de bibliothèques partagées est de pouvoir utiliser les clients après compilation du serveur et de les rendre ainsi intéropérables.
+
+\subsection{Mise en place du serveur}
+
+\subsubsection*{Utilisation des bibliothèques dynamiques}
+
+Pour faire jouer deux clients ensemble, il faut charger leurs bibliothèques partagées dynamiquement.
+Pour celà, on utilise des fonctions définies dans la bibliothèque \texttt{dlfcn.h}.
+On utilise d'abord la fonction \texttt{dlopen} qui prend en paramètre le chemin vers la bibliothèque partagée et qui renvoit un pointeur \texttt{void*} qui représente une \textit{handle}, en français une poignée, sur la bibliothèque.
+
+Pour accéder ensuite aux différentes fonctions du client, on utilise la fonction \texttt{dlsym} qui prend en paramètres deux arguments :
+\begin{itemize}
+\item un pointeur que l'on va faire pointer vers la fonction à laquelle on veut accéder
+\item une chaîne de caractère qui est le nom de la fonction que l'on veut récupérer
+\end{itemize}
+Lorsque l'on utilise \texttt{dlopen} ou \texttt{dlsym}, il est préférable d'utiliser ensuite la fonction \texttt{dlerror}. Cette fonction renvoie un message d'erreur si l'accès à la bibliothèque ou à l'une des fonctions présentes dans celle-ci a rencontré un problème.
+
+Enfin, pour fermer l'accès à la bibliothèque partagée, on utilise \texttt{dlclose} qui prend en argument la \texttt{handle} vers la bibliothèque (pointeur obtenu avec \texttt{dlopen}) et coupe ce lien.
+
+
+\subsubsection*{Modularité}
+
+Afin de rendre le code plus lisible, mais aussi d'augmenter son adaptabilité, nous avons rendu le code du serveur modulaire.
+Nous avons ainsi défini une structure de données \texttt{player\_func}.
+Elle contient les champs suivants :
+\begin{itemize}
+\item \texttt{void* player} : \texttt{handle} sur la bibliothèque partagée du client
+\item \texttt{char* (*get\_player\_name)(void)} : pointeur vers la fonction \texttt{get\_player\_name} 
+\item \texttt{void (*initialize)(unsigned int, struct graph\_t*)} : pointeur vers la fonction \texttt{initialize}
+\item \texttt{struct move\_t (*play)(const struct move\_t)} : pointeur vers la fonction \texttt{play}
+\item \texttt{void (*finalize)(void)} : pointeur vers la fonction \texttt{finalize}
+\item \texttt{int num\_wins} : nombre de victoires du joueur
+\item \texttt{struct graph\_t* graph\_player} : copie du graphe dans la structure du joueur
+\item \texttt{vertex\_t initial\_position} : position initiale du joueur
+\item \texttt{vertex\_t current\_position} : position actuelle du joueur
+\item \texttt{int* objectives\_reached} : tableau de booléens indiquant si l'objectif a été atteint ou non
+\item \texttt{enum dir\_t previous\_dir} : direction empruntée au dernier coup par le joueur
+\item \texttt{int num\_wall} : nombre de murs placés
+  \item \texttt{int lost} : booléen indiquant si le joueur a perdu ou non
+\end{itemize}
+
+\bigskip
+
+Nous avons stocké les différentes structures \texttt{player\_func} décrivant les joueurs dans un tableau global \texttt{players} pour faciliter l'accès aux différents joueurs mais aussi dans un objectif de modularité.
+
+\bigskip
+
+Pour la suite de la mise en place du serveur, nous avons pensé le code de la manière la plus générale possible, nous avons donc fait en sorte qu'il soit adaptable à un contexte où une partie à plus de deux joueurs est possible.
+
+Pour choisir aléatoirement lequel des joueurs sera le premier à jouer, nous avons tiré aléatoirement un nombre \texttt{i} entre 0 et \texttt{NUM\_PLAYER}, la macro définissant le nombre de joueur. Le premier joueur sera ainsi celui donc la bibliothèque partagée sera placée à l'indice \texttt{i} en ligne de commande (sans prendre en compte les options).
+On charge ensuite les bibliothèques une par une dans leur ordre d'apparition après l'indice tiré dans le tableau \texttt{players}, avec le premier joueur à l'indice 0.
+
+\subsubsection*{Boucle de jeu}
+
+Le jeu est lancé dans la fonction \texttt{game}. L'intérêt de séparer la boucle de jeu du \texttt{main} est d'améliorer la lisibilité du code mais aussi de relancer plusieurs parties à la suite afin de tester le taux de réussite de la stratégie d'un client contre un autre.
+
+Le graphe et d'autres paramètres sont initialisés selon les options données en ligne de commande : 
+\begin{itemize}
+\item \texttt{-t} : type de graphe (triangulaire, circulaire ou troué)
+\item \texttt{-m} : taille de la maille
+\item \texttt{-M} : nombre maximal de tours dans la boucle de jeu
+  \item \texttt{-g} : nombre de boucles de jeu générées (utile pour tester la stratégie des clients)
+\end{itemize}
+
+Les joueurs sont ensuite initialisés par leur fonction propre \texttt{initialize} et ils jouent tour à tour avec leur fonction \texttt{play}.
+
+La structure de donnée des coups \texttt{move\_t} est définie comme suit :
+\begin{lstlisting}[style=customc, label={lst:move}, caption={Définition du type move\_t}]
+  struct move_t {
+    enum player_color_t c; // The color of the player
+    enum move_type_t t; // The type of the move
+    vertex_t m; // The id of a vertex
+    struct edge_t e[2]; // The two edges for the wall
+};
+
+\end{lstlisting}
+
+Lors d'un coup de type \texttt{MOVE}, le joueur peut accéder aux sommets suivants :
+\begin{itemize}
+\item sommets à une distance 1 et reliés par une arrête au sommet sur lequel est le joueur
+\item sommets à un distance 2, ayant un angle de 30° avec la dernière direction empruntée par le joueur et étant reliés par des arêtes au sommet sur lequel est le joueur
+  \item sommets à un distance 3, dans la même direction que la dernière direction empruntée par le joueur et étant reliés par des arêtes au sommet sur lequel est le joueur
+\end{itemize}
+
+\bigskip
+
+La validité du coup retourné par la fonction \texttt{play} est ensuite vérifiée avec la fonction \texttt{is\_invalid}.
+Cette fonction vérifie donc que le coup retourné ne commet pas les erreurs suivantes :
+\begin{itemize}
+\item le joueur joue un coup de type \texttt{MOVE} et veut rester sur sa position actuelle
+  \item le joueur joue un coup de type \texttt{MOVE} et veut accéder à un sommet auxquel il ne peut pas accéder
+\item le joueur joue un coup en essayant de se faire passer pour un autre joueur (la couleur de joueur indiquée dans son coup n'est pas la sienne)
+\item le joueur joue un coup de type \texttt{WALL} et veut placer un mur qui rendra au moins un des objectifs inatteignables pour au moins un des joueurs
+  \item le joueur joue un coup de type \texttt{WALL} mais il a déjà atteint son nombre maximal de murs posés
+  \end{itemize}
+
+
+
+
+
+
+
+
